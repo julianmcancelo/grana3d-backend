@@ -41,6 +41,53 @@ router.put('/config', async (req, res) => {
 })
 
 // ============================================
+// BANNERS
+// ============================================
+
+// GET /api/admin/banners
+router.get('/banners', async (req, res) => {
+    try {
+        const banners = await prisma.banner.findMany({ orderBy: { orden: 'asc' } })
+        res.json(banners)
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener banners' })
+    }
+})
+
+// POST /api/admin/banners
+router.post('/banners', async (req, res) => {
+    try {
+        const banner = await prisma.banner.create({ data: req.body })
+        res.status(201).json(banner)
+    } catch (error) {
+        res.status(500).json({ error: 'Error al crear banner' })
+    }
+})
+
+// PUT /api/admin/banners/:id
+router.put('/banners/:id', async (req, res) => {
+    try {
+        const banner = await prisma.banner.update({
+            where: { id: req.params.id },
+            data: req.body
+        })
+        res.json(banner)
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar banner' })
+    }
+})
+
+// DELETE /api/admin/banners/:id
+router.delete('/banners/:id', async (req, res) => {
+    try {
+        await prisma.banner.delete({ where: { id: req.params.id } })
+        res.json({ message: 'Banner eliminado' })
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar banner' })
+    }
+})
+
+// ============================================
 // CATEGORÍAS
 // ============================================
 

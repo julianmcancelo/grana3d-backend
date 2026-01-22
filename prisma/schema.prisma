@@ -76,6 +76,39 @@ model Configuracion {
 }
 
 // ============================================
+// BANNERS / SLIDERS
+// ============================================
+
+model Banner {
+  id          String   @id @default(cuid())
+  titulo      String
+  subtitulo   String?
+  descripcion String?
+  imagen      String?
+  imagenMovil String?
+  
+  // Botón principal
+  textoBoton  String?
+  linkBoton   String?
+  
+  // Botón secundario
+  textoBoton2 String?
+  linkBoton2  String?
+  
+  // Estilo
+  colorFondo  String?
+  colorTexto  String?
+  overlay     Boolean  @default(true)
+  
+  // Control
+  orden       Int      @default(0)
+  activo      Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ============================================
 // CATEGORÍAS Y PRODUCTOS
 // ============================================
 

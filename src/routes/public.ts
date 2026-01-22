@@ -15,6 +15,19 @@ router.get('/config', async (req, res) => {
     }
 })
 
+// GET /api/banners - Banners activos
+router.get('/banners', async (req, res) => {
+    try {
+        const banners = await prisma.banner.findMany({
+            where: { activo: true },
+            orderBy: { orden: 'asc' }
+        })
+        res.json(banners)
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener banners' })
+    }
+})
+
 // GET /api/categorias - Lista de categorías
 router.get('/categorias', async (req, res) => {
     try {

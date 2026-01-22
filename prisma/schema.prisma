@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USUARIOS
+// ============================================
+
+enum Rol {
+  ADMIN
+  CLIENTE
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  nombre    String
+  rol       Rol      @default(CLIENTE)
+  telefono  String?
+  direccion String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pedidos   Pedido[]
+}
+
+// ============================================
+// CONFIGURACIÓN DE TIENDA
+// ============================================
+
+model Configuracion {
+  id    String @id @default(cuid())
+  clave String @unique
+  valor String
+}
+
+// ============================================
+// CATEGORÍAS Y PRODUCTOS
+// ============================================
+
+model Categoria {
+  id          String     @id @default(cuid())
+  nombre      String
+  descripcion String?
+  icono       String?
+  color       String?
+  orden       Int        @default(0)
+  activo      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  productos   Producto[]
+}
+
+model Producto {
+  id            String           @id @default(cuid())
+  nombre        String
+  descripcion   String?
+  precio        Float
+  precioOferta  Float?
+  stock         Int              @default(0)
+  imagenes      String[]
+  destacado     Boolean          @default(false)
+  activo        Boolean          @default(true)
+  categoriaId   String
+  categoria     Categoria        @relation(fields: [categoriaId], references: [id])
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  itemsPedido   ProductoPedido[]
+}
+
+// ============================================
+// PEDIDOS
+// ============================================
+
+enum EstadoPedido {
+  PENDIENTE
+  CONFIRMADO
+  EN_PROCESO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+model Pedido {
+  id           String           @id @default(cuid())
+  numero       Int              @unique @default(autoincrement())
+  usuarioId    String?
+  usuario      Usuario?         @relation(fields: [usuarioId], references: [id])
+  nombreCliente String?
+  telefono     String?
+  email        String?
+  direccion    String?
+  notas        String?
+  estado       EstadoPedido     @default(PENDIENTE)
+  subtotal     Float
+  envio        Float            @default(0)
+  total        Float
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  items        ProductoPedido[]
+}
+
+model ProductoPedido {
+  id         String   @id @default(cuid())
+  pedidoId   String
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id])
+  nombre     String   // Guardamos el nombre por si el producto cambia
+  precio     Float    // Guardamos el precio al momento de la compra
+  cantidad   Int
+}

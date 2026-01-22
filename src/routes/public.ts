@@ -82,6 +82,25 @@ router.get('/productos', async (req, res) => {
     }
 })
 
+// GET /api/productos/slug/:slug - Detalle de producto por slug
+router.get('/productos/slug/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params
+        const producto = await prisma.producto.findUnique({
+            where: { slug, activo: true },
+            include: { categoria: { select: { id: true, nombre: true, slug: true } } }
+        })
+
+        if (!producto) {
+            return res.status(404).json({ error: 'Producto no encontrado' })
+        }
+
+        res.json(producto)
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener producto' })
+    }
+})
+
 // GET /api/productos/:id - Detalle de producto
 router.get('/productos/:id', async (req, res) => {
     try {

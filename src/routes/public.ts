@@ -92,7 +92,7 @@ router.get('/productos/:id', async (req, res) => {
 // POST /api/pedidos - Crear pedido
 router.post('/pedidos', async (req, res) => {
     try {
-        const { items, nombreCliente, telefono, email, direccion, notas, usuarioId } = req.body
+        const { items, nombreCliente, apellidoCliente, telefonoCliente, emailCliente, dniCliente, direccionEnvio, ciudadEnvio, provinciaEnvio, codigoPostalEnvio, notas, usuarioId } = req.body
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'El pedido debe tener al menos un producto' })
@@ -115,7 +115,8 @@ router.post('/pedidos', async (req, res) => {
                 productoId: producto.id,
                 nombre: producto.nombre,
                 precio,
-                cantidad: item.cantidad
+                cantidad: item.cantidad,
+                imagen: producto.imagenes[0] || null
             })
         }
 
@@ -126,9 +127,14 @@ router.post('/pedidos', async (req, res) => {
             data: {
                 usuarioId,
                 nombreCliente,
-                telefono,
-                email,
-                direccion,
+                apellidoCliente,
+                emailCliente,
+                telefonoCliente,
+                dniCliente,
+                direccionEnvio,
+                ciudadEnvio,
+                provinciaEnvio,
+                codigoPostalEnvio,
                 notas,
                 subtotal,
                 envio,

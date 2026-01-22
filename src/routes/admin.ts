@@ -60,12 +60,14 @@ router.get('/categorias', async (req, res) => {
 // POST /api/admin/categorias
 router.post('/categorias', async (req, res) => {
     try {
-        const { nombre, descripcion, icono, color, orden } = req.body
+        const { nombre, descripcion, icono, color, orden, imagen } = req.body
+        const slug = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
         const categoria = await prisma.categoria.create({
-            data: { nombre, descripcion, icono, color, orden }
+            data: { nombre, slug, descripcion, imagen, icono, color, orden }
         })
         res.status(201).json(categoria)
     } catch (error) {
+        console.error(error)
         res.status(500).json({ error: 'Error al crear categoría' })
     }
 })
@@ -114,9 +116,18 @@ router.get('/productos', async (req, res) => {
 // POST /api/admin/productos
 router.post('/productos', async (req, res) => {
     try {
-        const { nombre, descripcion, precio, precioOferta, stock, imagenes, destacado, categoriaId } = req.body
+        const { nombre, descripcion, descripcionCorta, precio, precioOferta, costo, sku, stock, stockMinimo, imagenes, video, peso, dimensiones, material, color, destacado, nuevo, categoriaId } = req.body
+        const slug = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now().toString(36)
         const producto = await prisma.producto.create({
-            data: { nombre, descripcion, precio, precioOferta, stock, imagenes, destacado, categoriaId }
+            data: {
+                nombre, slug, descripcion, descripcionCorta,
+                precio, precioOferta, costo,
+                sku, stock, stockMinimo,
+                imagenes: imagenes || [], video,
+                peso, dimensiones, material, color,
+                destacado, nuevo,
+                categoriaId
+            }
         })
         res.status(201).json(producto)
     } catch (error) {

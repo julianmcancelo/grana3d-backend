@@ -17,16 +17,52 @@ enum Rol {
 }
 
 model Usuario {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  nombre    String
-  rol       Rol      @default(CLIENTE)
-  telefono  String?
-  direccion String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  pedidos   Pedido[]
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String
+  
+  // Datos personales
+  nombre          String
+  apellido        String?
+  telefono        String?
+  dni             String?
+  fechaNacimiento DateTime?
+  avatar          String?
+  
+  // Dirección de envío
+  direccion       String?
+  ciudad          String?
+  provincia       String?
+  codigoPostal    String?
+  pais            String   @default("Argentina")
+  
+  // Dirección alternativa
+  direccionAlt    String?
+  ciudadAlt       String?
+  provinciaAlt    String?
+  codigoPostalAlt String?
+  
+  // Sistema
+  rol             Rol      @default(CLIENTE)
+  activo          Boolean  @default(true)
+  emailVerificado Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  pedidos         Pedido[]
+  favoritos       Favorito[]
+}
+
+model Favorito {
+  id         String   @id @default(cuid())
+  usuarioId  String
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  
+  @@unique([usuarioId, productoId])
 }
 
 // ============================================
@@ -46,7 +82,9 @@ model Configuracion {
 model Categoria {
   id          String     @id @default(cuid())
   nombre      String
+  slug        String     @unique
   descripcion String?
+  imagen      String?
   icono       String?
   color       String?
   orden       Int        @default(0)
@@ -59,18 +97,47 @@ model Categoria {
 model Producto {
   id            String           @id @default(cuid())
   nombre        String
+  slug          String           @unique
   descripcion   String?
+  descripcionCorta String?
+  
+  // Precios
   precio        Float
   precioOferta  Float?
+  costo         Float?
+  
+  // Inventario
+  sku           String?
   stock         Int              @default(0)
+  stockMinimo   Int              @default(5)
+  
+  // Media
   imagenes      String[]
+  video         String?
+  
+  // Características
+  peso          Float?
+  dimensiones   String?
+  material      String?
+  color         String?
+  
+  // SEO
+  metaTitulo    String?
+  metaDescripcion String?
+  
+  // Estado
   destacado     Boolean          @default(false)
+  nuevo         Boolean          @default(true)
   activo        Boolean          @default(true)
+  
   categoriaId   String
   categoria     Categoria        @relation(fields: [categoriaId], references: [id])
+  
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
+  
   itemsPedido   ProductoPedido[]
+  favoritos     Favorito[]
 }
 
 // ============================================
@@ -86,23 +153,55 @@ enum EstadoPedido {
   CANCELADO
 }
 
+enum MetodoPago {
+  EFECTIVO
+  TRANSFERENCIA
+  MERCADOPAGO
+  TARJETA
+}
+
 model Pedido {
-  id           String           @id @default(cuid())
-  numero       Int              @unique @default(autoincrement())
-  usuarioId    String?
-  usuario      Usuario?         @relation(fields: [usuarioId], references: [id])
-  nombreCliente String?
-  telefono     String?
-  email        String?
-  direccion    String?
-  notas        String?
-  estado       EstadoPedido     @default(PENDIENTE)
-  subtotal     Float
-  envio        Float            @default(0)
-  total        Float
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  items        ProductoPedido[]
+  id              String           @id @default(cuid())
+  numero          Int              @unique @default(autoincrement())
+  
+  // Cliente
+  usuarioId       String?
+  usuario         Usuario?         @relation(fields: [usuarioId], references: [id])
+  
+  // Datos del cliente (por si no está registrado)
+  nombreCliente   String?
+  apellidoCliente String?
+  emailCliente    String?
+  telefonoCliente String?
+  dniCliente      String?
+  
+  // Dirección de envío
+  direccionEnvio  String?
+  ciudadEnvio     String?
+  provinciaEnvio  String?
+  codigoPostalEnvio String?
+  
+  // Notas
+  notas           String?
+  notasInternas   String?
+  
+  // Estado y pago
+  estado          EstadoPedido     @default(PENDIENTE)
+  metodoPago      MetodoPago?
+  
+  // Montos
+  subtotal        Float
+  descuento       Float            @default(0)
+  envio           Float            @default(0)
+  total           Float
+  
+  // Seguimiento
+  codigoSeguimiento String?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  items           ProductoPedido[]
 }
 
 model ProductoPedido {
@@ -111,7 +210,10 @@ model ProductoPedido {
   pedido     Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
   productoId String
   producto   Producto @relation(fields: [productoId], references: [id])
-  nombre     String   // Guardamos el nombre por si el producto cambia
-  precio     Float    // Guardamos el precio al momento de la compra
+  
+  // Guardamos copia de datos al momento de compra
+  nombre     String
+  precio     Float
   cantidad   Int
+  imagen     String?
 }

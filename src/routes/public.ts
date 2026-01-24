@@ -3,13 +3,11 @@ import { prisma } from '../index'
 
 const router = Router()
 
-// GET /api/config - Configuración de la tienda
+// GET /api/config - Configuración de la tienda (público)
 router.get('/config', async (req, res) => {
     try {
         const configs = await prisma.configuracion.findMany()
-        const config: Record<string, string> = {}
-        configs.forEach((c: { clave: string; valor: string }) => { config[c.clave] = c.valor })
-        res.json(config)
+        res.json(configs) // Return as array [{clave, valor}, ...]
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener configuración' })
     }
@@ -181,6 +179,95 @@ router.post('/pedidos', async (req, res) => {
         })
 
         res.status(201).json(pedido)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: 'Error al crear pedido' })
+    }
+})
+
+// POST /api/pedidos/whatsapp - Crear pedido para pago por transferencia/WhatsApp
+router.post('/pedidos/whatsapp', async (req, res) => {
+    try {
+        const {
+            items,
+            nombreCliente,
+            apellidoCliente,
+            telefonoCliente,
+            emailCliente,
+            dniCliente,
+            direccionEnvio,
+            ciudadEnvio,
+            provinciaEnvio,
+            codigoPostalEnvio,
+            notas,
+            usuarioId,
+            metodoEnvio,
+            metodoPago,
+            costoEnvio
+        } = req.body
+
+        if (!items || items.length === 0) {
+            return res.status(400).json({ error: 'El pedido debe tener al menos un producto' })
+        }
+
+        // Calcular totales
+        let subtotal = 0
+        const itemsPedido = []
+
+        for (const item of items) {
+            const producto = await prisma.producto.findUnique({ where: { id: item.productoId } })
+            if (!producto) {
+                return res.status(400).json({ error: `Producto ${item.productoId} no encontrado` })
+            }
+
+            const precio = producto.precioOferta || producto.precio
+            subtotal += precio * item.cantidad
+
+            itemsPedido.push({
+                productoId: producto.id,
+                nombre: producto.nombre + (item.variante ? ` (${item.variante})` : ''),
+                precio,
+                cantidad: item.cantidad,
+                imagen: producto.imagenes[0] || null
+            })
+        }
+
+        const envio = costoEnvio || 0
+        const total = subtotal + envio
+
+        const pedido = await prisma.pedido.create({
+            data: {
+                usuarioId,
+                nombreCliente,
+                apellidoCliente,
+                emailCliente,
+                telefonoCliente,
+                dniCliente,
+                direccionEnvio,
+                ciudadEnvio,
+                provinciaEnvio,
+                codigoPostalEnvio,
+                notas,
+                subtotal,
+                envio,
+                total,
+                estado: 'PENDIENTE',
+                metodoPago: metodoPago || 'TRANSFERENCIA',
+                metodoEnvio: metodoEnvio || null,
+                items: {
+                    create: itemsPedido
+                }
+            },
+            include: {
+                items: true
+            }
+        })
+
+        res.status(201).json({
+            pedidoId: pedido.id,
+            numero: pedido.numero,
+            total: pedido.total
+        })
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: 'Error al crear pedido' })

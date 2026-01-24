@@ -153,6 +153,9 @@ model Producto {
   dimensiones   String?
   material      String?
   color         String?
+  colores       String[]
+  tamanos       String[]
+  variantes     String[]
   
   // SEO
   metaTitulo    String?
@@ -178,6 +181,7 @@ model Producto {
 // ============================================
 
 enum EstadoPedido {
+  PENDIENTE_PAGO
   PENDIENTE
   CONFIRMADO
   EN_PROCESO
@@ -191,6 +195,14 @@ enum MetodoPago {
   TRANSFERENCIA
   MERCADOPAGO
   TARJETA
+}
+
+enum MetodoEnvio {
+  RETIRO_LOCAL
+  CORREO_ARGENTINO
+  ANDREANI
+  ENVIO_PROPIO
+  OTRO
 }
 
 model Pedido {
@@ -221,6 +233,7 @@ model Pedido {
   // Estado y pago
   estado          EstadoPedido     @default(PENDIENTE)
   metodoPago      MetodoPago?
+  metodoEnvio     MetodoEnvio?
   
   // Montos
   subtotal        Float
@@ -233,6 +246,10 @@ model Pedido {
   
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  
+  // MercadoPago
+  mercadopagoPreferenceId String?
+  mercadopagoPaymentId    String?
   
   items           ProductoPedido[]
 }

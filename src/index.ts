@@ -7,6 +7,7 @@ import { PrismaClient } from '@prisma/client'
 import authRoutes from './routes/auth'
 import publicRoutes from './routes/public'
 import adminRoutes from './routes/admin'
+import pagosRoutes from './routes/pagos'
 
 dotenv.config()
 
@@ -28,6 +29,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api', publicRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/pagos', pagosRoutes)
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

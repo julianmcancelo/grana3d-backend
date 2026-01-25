@@ -8,6 +8,7 @@ import authRoutes from './routes/auth'
 import publicRoutes from './routes/public'
 import adminRoutes from './routes/admin'
 import pagosRoutes from './routes/pagos'
+import cuponesRoutes from './routes/cupones'
 
 dotenv.config()
 
@@ -30,6 +31,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api', publicRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/pagos', pagosRoutes)
+app.use('/api/cupones', cuponesRoutes)
+app.use('/api/admin/cupones', cuponesRoutes)
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
